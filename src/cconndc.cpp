@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-	Copyright (C) 2006-2022 Verlihub Team, info at verlihub dot net
+	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 
 	Verlihub is free software; You can redistribute it
 	and modify it under the terms of the GNU General
@@ -50,8 +50,8 @@ cConnDC::cConnDC(int sd, cAsyncSocketServer *server):
 	mRegInfo = NULL;
 	mSRCounter = 0;
 	memset(mProtoFloodCounts, 0, sizeof(mProtoFloodCounts)); // protocol flood
-	memset(mProtoFloodTimes, 0, sizeof(mProtoFloodTimes));
-	memset(mProtoFloodReports, 0, sizeof(mProtoFloodReports));
+	//memset(&mProtoFloodTimes, 0, sizeof(mProtoFloodTimes));
+	//memset(&mProtoFloodReports, 0, sizeof(mProtoFloodReports));
 }
 
 cConnDC::~cConnDC()
@@ -108,7 +108,6 @@ int cConnDC::Send(string &data, bool AddPipe, bool Flush)
 		mTimeLastAttempt = Server()->mTime;
 
 	if (ret > 0) { // calculate upload bandwidth in real time
-		SetGeoZone(); // must be called first
 		//Server()->mUploadZone[mGeoZone].Dump();
 		Server()->mUploadZone[mGeoZone].Insert(Server()->mTime, ret);
 		//Server()->mUploadZone[mGeoZone].Dump();
@@ -603,7 +602,6 @@ void cDCConnFactory::DeleteConn(cAsyncConn * &connection)
 		#endif
 
 		if (conn->GetLSFlag(eLS_ALLOWED)) {
-			conn->SetGeoZone(); // must be called first
 			mServer->mUserCountTot--;
 			mServer->mUserCount[conn->mGeoZone]--;
 
@@ -694,7 +692,7 @@ void cConnDC::SetGeoZone()
 			if (cc.empty())
 				cc = GetGeoCC();
 
-			if ((cc == serv->mC.cc_zone[pos]) || (serv->mC.cc_zone[pos].find(cc) != serv->mC.cc_zone[pos].npos)) {
+			if ((cc == serv->mC.cc_zone[pos]) || (serv->mC.cc_zone[pos].find(cc) != string::npos)) {
 				mGeoZone = pos + 1;
 				return;
 			}

@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-	Copyright (C) 2006-2022 Verlihub Team, info at verlihub dot net
+	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 
 	Verlihub is free software; You can redistribute it
 	and modify it under the terms of the GNU General
@@ -402,7 +402,7 @@ string StrByteList(const string &data, const string &sep)
 
 	for (unsigned i = 0; i < data.size(); ++i) {
 		if (i > 0)
-			res.append(1, ' ');
+			res.append(sep);
 
 		res.append(StringFrom(int(data[i])));
 	}

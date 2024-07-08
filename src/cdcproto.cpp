@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-	Copyright (C) 2006-2022 Verlihub Team, info at verlihub dot net
+	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 
 	Verlihub is free software; You can redistribute it
 	and modify it under the terms of the GNU General
@@ -500,10 +500,6 @@ int cDCProto::DC_Supports(cMessageDC *msg, cConnDC *conn)
 			conn->mFeatures |= eSF_NICKRULE;
 			pars.append("NickRule ");
 
-		} else if ((feature.size() == 8) && (StrCompare(feature, 0, 8, "DataStat") == 0)) {
-			conn->mFeatures |= eSF_DATASTAT;
-			pars.append("DataStat ");
-
 		} else if ((feature.size() == 10) && (StrCompare(feature, 0, 10, "SearchRule") == 0)) {
 			conn->mFeatures |= eSF_SEARRULE;
 			pars.append("SearchRule ");
@@ -588,7 +584,6 @@ int cDCProto::DC_ValidateNick(cMessageDC *msg, cConnDC *conn)
 		return -1;
 	}
 
-	conn->SetGeoZone(); // must be called first
 	unsigned int limit = mS->mC.max_users_total; // user limits
 	unsigned int limit_cc = mS->mC.max_users[conn->mGeoZone];
 	unsigned int limit_extra = 0;
@@ -1210,21 +1205,23 @@ int cDCProto::DC_MyINFO(cMessageDC *msg, cConnDC *conn)
 	conn->mpUser->mMyFlag = myinfo_speed[myinfo_speed.size() - 1]; // set status flags, note: we set it before executing callbacks, so plugins have option to change it before showing user to all
 
 	if (conn->GetLSFlag(eLS_LOGIN_DONE) != eLS_LOGIN_DONE) { // user sent myinfo for the first time
-		cBan Ban(mS);
-		result = mS->mBanList->TestBan(Ban, conn, conn->mpUser->mNick, eBF_SHARE);
+		if ((conn->mpUser->mShare > 0) && (conn->mpUser->mClass <= eUC_REGUSER)) { // check share ban if non zero
+			cBan Ban(mS);
+			result = mS->mBanList->TestBan(Ban, conn, conn->mpUser->mNick, eBF_SHARE);
 
-		if (result && (conn->mpUser->mClass <= eUC_REGUSER)) {
-			os << ((result == 1) ? _("You are prohibited from entering this hub") : _("You are banned from this hub")) << ":\r\n";
-			Ban.DisplayUser(os);
-			mS->DCPublicHS(os.str(), conn);
+			if (result) {
+				os << ((result == 1) ? _("You are prohibited from entering this hub") : _("You are banned from this hub")) << ":\r\n";
+				Ban.DisplayUser(os);
+				mS->DCPublicHS(os.str(), conn);
 
-			if (conn->Log(1))
-				conn->LogStream() << "Kicked user due to ban detection" << endl;
+				if (conn->Log(1))
+					conn->LogStream() << "Kicked user due to ban detection" << endl;
 
-			conn->CloseNice(1000, eCR_KICKED);
-			delete dc_tag;
-			dc_tag = NULL;
-			return -1;
+				conn->CloseNice(1000, eCR_KICKED);
+				delete dc_tag;
+				dc_tag = NULL;
+				return -1;
+			}
 		}
 
 		#ifndef WITHOUT_PLUGINS
@@ -1533,7 +1530,7 @@ int cDCProto::DC_IN(cMessageDC *msg, cConnDC *conn)
 	if (data.empty())
 		return 0;
 
-	string back_in, back_full, part, body, sep("$$");
+	string back_in, /* todo: back_full, */part, body, sep("$$");
 	bool empt;
 	data.append(sep);
 	size_t pos = data.find(sep);
@@ -1756,7 +1753,7 @@ int cDCProto::DC_To(cMessageDC *msg, cConnDC *conn)
 	}
 
 	if (conn->mpUser->mClass < mS->mC.private_class) {
-		os << _("Private chat is currently disabled for users with your class.");
+		os << _("Private chat is currently disabled for users with your class, please consider registering on the hub or contact an operator.");
 		mS->DCPrivateHS(os.str(), conn);
 		mS->DCPublicHS(os.str(), conn);
 		return 0;
@@ -1855,8 +1852,8 @@ int cDCProto::DC_MCTo(cMessageDC *msg, cConnDC *conn)
 		return -4;
 	}
 
-	if (conn->mpUser->mClass < mS->mC.private_class) { // pm rules also apply on mcto, messages are also private
-		os << _("Private chat is currently disabled for users with your class.");
+	if (conn->mpUser->mClass < mS->mC.private_class) { // pm rules apply to mcto
+		os << _("Private chat is currently disabled for users with your class, please consider registering on the hub or contact an operator.");
 		mS->DCPrivateHS(os.str(), conn);
 		mS->DCPublicHS(os.str(), conn);
 		return 0;
@@ -1957,7 +1954,7 @@ int cDCProto::DC_Chat(cMessageDC *msg, cConnDC *conn)
 	}
 
 	if (conn->mpUser->mClass < mS->mC.mainchat_class) {
-		mS->DCPublicHS(_("Main chat is currently disabled for users with your class."), conn);
+		mS->DCPublicHS(_("Main chat is currently disabled for users with your class, please consider registering on the hub or contact an operator."), conn);
 		return 0;
 	}
 
@@ -3125,7 +3122,7 @@ int cDCProto::DCB_BotINFO(cMessageDC *msg, cConnDC *conn)
 	os << mS->mC.hub_name << sep;
 	os << host << sep;
 	os << mS->mC.hub_desc << sep;
-	os << mS->mC.max_users_total << sep;
+	os << ((mS->mC.max_users[0] < mS->mC.max_users_total) ? mS->mC.max_users[0] : mS->mC.max_users_total) << sep; // prioritize main zone
 	os << StringFrom((unsigned __int64)(1024 * 1024) * minshare) << sep;
 	os << ((ConnType) ? ConnType->mTagMinSlots : 0) << sep;
 	os << mS->mC.tag_max_hubs << sep;
@@ -4063,11 +4060,6 @@ int cDCProto::NickList(cConnDC *conn)
 			conn->mNickListInProgress = true;
 		*/
 
-		if (conn->mFeatures & eSF_DATASTAT) { // user list status begin
-			Create_DataStat(_str, 0, 1);
-			conn->Send(_str, true);
-		}
-
 		if (conn->mFeatures & eSF_NOHELLO) {
 			if (conn->Log(3))
 				conn->LogStream() << "Sending MyINFO list" << endl;
@@ -4159,11 +4151,6 @@ int cDCProto::NickList(cConnDC *conn)
 		if (!mS->mC.disable_extjson && (conn->mFeatures & eSF_EXTJSON2)) { // extjson
 			if (mS->CollectExtJSON(_str, conn))
 				conn->Send(_str, false); // no pipe, its already added by collector
-		}
-
-		if (conn->mFeatures & eSF_DATASTAT) { // user list status end
-			Create_DataStat(_str, 0, 0);
-			conn->Send(_str, true);
 		}
 
 	/*
@@ -4587,40 +4574,6 @@ void cDCProto::Create_UserIP(string &dest, const string &nick, const string &add
 	dest.append("$$");
 }
 
-void cDCProto::Create_DataStat(string &dest, int type, int act)
-{
-	if (dest.size())
-		dest.clear();
-
-	dest.append("$DataStat ");
-
-	switch (type) { // todo: add more useful status types
-		case 0: // user list
-			dest.append("UserList");
-			break;
-
-		default:
-			dest.append(1, '*');
-			break;
-	}
-
-	dest.append(1, ' ');
-
-	switch (act) { // todo: add more useful status actions
-		case 1:
-			dest.append("Begin");
-			break;
-
-		case 0:
-			dest.append("End");
-			break;
-
-		default:
-			dest.append(1, '*');
-			break;
-	}
-}
-
 void cDCProto::Create_GetPass(string &dest)
 {
 	if (dest.size())
@@ -4877,6 +4830,15 @@ void cDCProto::ParseReferer(const string &lock, string &ref, bool inlock)
 
 	while (ref.size() > 0) {
 		pos = ref.find("\r");
+
+		if (pos != ref.npos)
+			ref.erase(pos, 1);
+		else
+			break;
+	}
+
+	while (ref.size() > 0) {
+		pos = ref.find("]");
 
 		if (pos != ref.npos)
 			ref.erase(pos, 1);

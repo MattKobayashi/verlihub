@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-	Copyright (C) 2006-2022 Verlihub Team, info at verlihub dot net
+	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 
 	Verlihub is free software; You can redistribute it
 	and modify it under the terms of the GNU General
@@ -114,9 +114,7 @@ cAsyncConn::cAsyncConn(int desc, cAsyncSocketServer *s, tConnType ct): // incomi
 {
 	if (mxServer) {
 		nVerliHub::cServerDC *serv = (nVerliHub::cServerDC*)mxServer;
-
-		if (serv)
-			mMaxBuffer = serv->mC.max_outbuf_size;
+		mMaxBuffer = serv->mC.max_outbuf_size;
 	}
 
 	memset(&mAddrIN, 0, sizeof(struct sockaddr_in));
@@ -189,6 +187,8 @@ cAsyncConn::cAsyncConn(const string &host, int port/*, bool udp*/): // outgoing 
 	mBufReadPos(0),
 	mCloseAfter(0, 0)
 {
+	memset(&mAddrIN, 0, sizeof(struct sockaddr_in));
+
 	/*
 	if (udp) {
 		mType = eCT_SERVERUDP;

@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-	Copyright (C) 2006-2022 Verlihub Team, info at verlihub dot net
+	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 
 	Verlihub is free software; You can redistribute it
 	and modify it under the terms of the GNU General
@@ -1115,18 +1115,22 @@ int _GetNickList(lua_State *L)
 	int result = 1;
 
 	if (lua_gettop(L) == 1) {
-		const char *nicklist = GetNickList();
+		cServerDC *server = GetCurrentVerlihub();
 
-		if (!nicklist || nicklist[0] == '\0')
-			result = 0;
+		if (server) {
+			string nicklist;
+			server->mUserList.GetNickList(nicklist);
 
-		lua_pushboolean(L, result);
-		lua_pushstring(L, nicklist);
+			if (nicklist.empty())
+				result = 0;
 
-		if (nicklist)
-			free((void*)nicklist);
-
-		return 2;
+			lua_pushboolean(L, result);
+			lua_pushstring(L, nicklist.c_str());
+			return 2;
+		} else {
+			luaerror(L, ERR_SERV);
+			return 2;
+		}
 	} else {
 		luaL_error(L, "Error calling VH:GetNickList; expected 0 argument but got %d", lua_gettop(L) - 1);
 		lua_pushboolean(L, 0);
@@ -1209,7 +1213,7 @@ int _GetUserClass(lua_State *L)
 		lua_pushnumber(L, uclass);
 		return 2;
 	} else {
-		luaL_error(L, "Error calling VH:GetNickList; expected 1 argument but got %d", lua_gettop(L) - 1);
+		luaL_error(L, "Error calling VH:GetUserClass; expected 1 argument but got %d", lua_gettop(L) - 1);
 		lua_pushboolean(L, 0);
 		lua_pushnil(L);
 		return 2;
@@ -1659,7 +1663,6 @@ int _InUserSupports(lua_State *L)
 		((flag.size() == 4) && (StrCompare(flag, 0, 4, "ACTM") == 0) && (user->mxConn->mFeatures & eSF_ACTM)) ||
 		((flag.size() == 8) && (StrCompare(flag, 0, 8, "SaltPass") == 0) && (user->mxConn->mFeatures & eSF_SALTPASS)) ||
 		((flag.size() == 8) && (StrCompare(flag, 0, 8, "NickRule") == 0) && (user->mxConn->mFeatures & eSF_NICKRULE)) ||
-		((flag.size() == 8) && (StrCompare(flag, 0, 8, "DataStat") == 0) && (user->mxConn->mFeatures & eSF_DATASTAT)) ||
 		((flag.size() == 10) && (StrCompare(flag, 0, 10, "SearchRule") == 0) && (user->mxConn->mFeatures & eSF_SEARRULE)) ||
 		((flag.size() == 6) && (StrCompare(flag, 0, 6, "HubURL") == 0) && (user->mxConn->mFeatures & eSF_HUBURL)) ||
 		((flag.size() == 8) && (StrCompare(flag, 0, 8, "ExtJSON2") == 0) && (user->mxConn->mFeatures & eSF_EXTJSON2))

@@ -1,5 +1,5 @@
 #	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-#	Copyright (C) 2006-2023 Verlihub Team, info at verlihub dot net
+#	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 #
 #	Verlihub is free software; You can redistribute it
 #	and modify it under the terms of the GNU General
@@ -16,7 +16,7 @@
 #	Please see http://www.gnu.org/licenses/ for a copy
 #	of the GNU General Public License.
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.0)
 PROJECT(VERLIHUB)
 
 message(STATUS)
@@ -31,9 +31,9 @@ message(STATUS "If you get errors related to autosprintf, please try with: -DUSE
 message(STATUS)
 
 SET(VERLIHUB_VERSION_MAJOR 1) # note: these must be numbers, else compilation will fail
-SET(VERLIHUB_VERSION_MINOR 4)
+SET(VERLIHUB_VERSION_MINOR 5)
 SET(VERLIHUB_VERSION_PATCH 0)
-SET(VERLIHUB_VERSION_TWEAK 3)
+SET(VERLIHUB_VERSION_TWEAK 2)
 SET(VERLIHUB_VERSION "${VERLIHUB_VERSION_MAJOR}.${VERLIHUB_VERSION_MINOR}.${VERLIHUB_VERSION_PATCH}.${VERLIHUB_VERSION_TWEAK}")
 #SET(VERLIHUB_SOVERSION "${VERLIHUB_VERSION_MAJOR}.${VERLIHUB_VERSION_MINOR}.${VERLIHUB_VERSION_PATCH}")
 SET(PROJECT_NAME "verlihub")
@@ -291,7 +291,7 @@ SET(CPACK_DEBIAN_PACKAGE_DEPENDS "zlib, mysql-server-5.5, mysql-client-5.5, mmdb
 SET(CPACK_RPM_PACKAGE_LICENSE ${CPACK_RESOURCE_FILE_LICENSE})
 SET(CPACK_RPM_PACKAGE_URL "https://github.com/verlihub/")
 SET(CPACK_RPM_PACKAGE_GROUP "Application/Internet")
-set(CPACK_RPM_PACKAGE_REQUIRES "zlib, openssl, mysql-server >= 5.0, mysql >= 5.0, maxminddb, gettext, pcre")
+SET(CPACK_RPM_PACKAGE_REQUIRES "zlib, openssl, mysql-server >= 5.0, mysql >= 5.0, maxminddb, gettext, pcre")
 
 IF(WITH_PYTHON)
 	SET(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, python (>= 2.7)")

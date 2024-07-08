@@ -1,5 +1,5 @@
 #	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-#	Copyright (C) 2006-2022 Verlihub Team, info at verlihub dot net
+#	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 #
 #	Verlihub is free software; You can redistribute it
 #	and modify it under the terms of the GNU General
@@ -17,8 +17,8 @@
 #	of the GNU General Public License.
 
 OPTION(WITH_PLUGINS "Whether to build any plugins or not" TRUE)
-IF(WITH_PLUGINS)
 
+IF(WITH_PLUGINS)
 SET(ENABLE_PLUGIN TRUE)
 
 # plugman plugin, always enabled
@@ -28,25 +28,17 @@ ADD_PLUGIN(ENABLE_PLUGIN plugman)
 # lua plugin
 
 OPTION(WITH_LUA "Whether to build LUA plugin or not" TRUE)
+
 IF(WITH_LUA)
-	Find_Package(Lua "5.4" EXACT)
-	#Find_Package(LuaSocket)
+	#SET(CMAKE_FIND_DEBUG_MODE 1) # todo: test only
+	Find_Package(Lua 5.2 MODULE REQUIRED) # lua 5.2 and later, note: cmake 3.18 adds support for lua 5.4
 
-	IF(LUA_FOUND)
-		ADD_PLUGIN(LUA_FOUND lua)
-	ELSE(LUA_FOUND)
-		Find_Package(Lua "5.3" EXACT)
+	#IF(LUA_FOUND)
+		#Find_Package(LuaSocket)
+	#ENDIF(LUA_FOUND)
 
-		IF(LUA_FOUND)
-			ADD_PLUGIN(LUA_FOUND lua)
-		ELSE(LUA_FOUND)
-			Find_Package(Lua "5.2" EXACT)
+	ADD_PLUGIN(LUA_FOUND lua)
 
-			IF(LUA_FOUND)
-				ADD_PLUGIN(LUA_FOUND lua)
-			ENDIF(LUA_FOUND)
-		ENDIF(LUA_FOUND)
-	ENDIF(LUA_FOUND)
 ELSE(WITH_LUA)
 	MESSAGE(STATUS "Not building LUA plugin, to enable please use: -DWITH_LUA=ON")
 ENDIF(WITH_LUA)

@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-	Copyright (C) 2006-2022 Verlihub Team, info at verlihub dot net
+	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 
 	Verlihub is free software; You can redistribute it
 	and modify it under the terms of the GNU General
@@ -153,6 +153,7 @@ bool cpiLua::RegisterAll()
 	RegisterCallBack("VH_OnUserInList");
 	RegisterCallBack("VH_OnUserLogin");
 	RegisterCallBack("VH_OnUserLogout");
+	RegisterCallBack("VH_OnCloneCountLow");
 	RegisterCallBack("VH_OnTimer");
 	RegisterCallBack("VH_OnNewReg");
 	RegisterCallBack("VH_OnDelReg");
@@ -864,6 +865,29 @@ bool cpiLua::OnUserLogout(cUser *user)
 	}
 
 	return true;
+}
+
+bool cpiLua::OnCloneCountLow(cUser *user, string nick, int count)
+{
+	bool res = true;
+
+	if (!user)
+		return res;
+
+	const char *args[] = {
+		user->mNick.c_str(),
+		nick.c_str(),
+		toString(count),
+		NULL
+	};
+
+	if (user->mxConn)
+		res = CallAll("VH_OnCloneCountLow", args, user->mxConn);
+	else
+		res = CallAll("VH_OnCloneCountLow", args);
+
+	delete [] args[2];
+	return res;
 }
 
 bool cpiLua::OnTimer(__int64 msec)

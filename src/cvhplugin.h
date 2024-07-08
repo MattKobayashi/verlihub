@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-	Copyright (C) 2006-2022 Verlihub Team, info at verlihub dot net
+	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 
 	Verlihub is free software; You can redistribute it
 	and modify it under the terms of the GNU General
@@ -373,6 +373,13 @@ public:
 		this event is discardable
 	*/
 	virtual bool OnUserLogout(cUser *user) { return true; }
+
+	/*
+		event handler called when clone count is too low, but atleast one
+		use RegisterCallBack("VH_OnCloneCountLow") to register it
+		this event is discardable
+	*/
+	virtual bool OnCloneCountLow(cUser *user, string nick, int count) { return true; }
 
 	/*
 		event handler called on bad password from user

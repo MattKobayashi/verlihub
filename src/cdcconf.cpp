@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-	Copyright (C) 2006-2022 Verlihub Team, info at verlihub dot net
+	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 
 	Verlihub is free software; You can redistribute it
 	and modify it under the terms of the GNU General
@@ -269,6 +269,7 @@ void cDCConf::AddVars()
 	Add("use_hub_msg_time", use_hub_msg_time, 0);
 	Add("min_class_register" , min_class_register, (int)eUC_CHEEF);
 	Add("min_class_redir", min_class_redir, (int)eUC_CHEEF);
+	Add("min_class_lstredir", min_class_lstredir, (int)eUC_CHEEF);
 	Add("min_class_bc", min_class_bc, (int)eUC_CHEEF);
 	Add("min_class_bc_guests", min_class_bc_guests, (int)eUC_CHEEF);
 	Add("min_class_bc_regs", min_class_bc_regs, (int)eUC_CHEEF);

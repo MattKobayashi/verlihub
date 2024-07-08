@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-	Copyright (C) 2006-2022 Verlihub Team, info at verlihub dot net
+	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 
 	Verlihub is free software; You can redistribute it
 	and modify it under the terms of the GNU General
@@ -51,7 +51,7 @@
 #define USER_ZONES 6
 
 #define BAD_NICK_CHARS_NMDC " $|"
-#define BAD_NICK_CHARS_OWN "<>"
+#define BAD_NICK_CHARS_OWN "<>\r\n"
 #define DEFAULT_COMMAND_TRIGS "+!/"
 
 #define CRASH_SERV_ADDR "crash.verlihub.net"
@@ -748,7 +748,7 @@ protected: // Protected methods
 	* @see BeginUserLogin(), AfterUserLogin()
 	* @param conn User connection.
 	*/
-	void DoUserLogin(cConnDC *conn);
+	bool DoUserLogin(cConnDC *conn);
 
 	/** create somehow a string to get line for given connection, ad return th pointer */
 	/**
@@ -870,6 +870,7 @@ private:
 			mOnUserInList(mgr, "VH_OnUserInList", &cVHPlugin::OnUserInList),
 			mOnUserLogin(mgr, "VH_OnUserLogin", &cVHPlugin::OnUserLogin),
 			mOnUserLogout(mgr, "VH_OnUserLogout", &cVHPlugin::OnUserLogout),
+			mOnCloneCountLow(mgr, "VH_OnCloneCountLow", &cVHPlugin::OnCloneCountLow),
 			mOnValidateTag(mgr, "VH_OnValidateTag", &cVHPlugin::OnValidateTag),
 			mOnTimer(mgr, "VH_OnTimer", &cVHPlugin::OnTimer),
 			mOnNewReg(mgr, "VH_OnNewReg", &cVHPlugin::OnNewReg),
@@ -917,6 +918,7 @@ private:
 		cVHCBL_User mOnUserInList;
 		cVHCBL_User mOnUserLogin;
 		cVHCBL_User mOnUserLogout;
+		cVHCBL_UsrStrInt mOnCloneCountLow;
 		cVHCBL_ConnTag mOnValidateTag;
 		cVHCBL_int64 mOnTimer;
 		cVHCBL_UsrStrInt mOnNewReg;

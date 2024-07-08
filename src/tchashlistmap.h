@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-	Copyright (C) 2006-2022 Verlihub Team, info at verlihub dot net
+	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 
 	Verlihub is free software; You can redistribute it
 	and modify it under the terms of the GNU General
@@ -106,7 +106,7 @@ DataType tcHashListMap<DataType,KeyType>::GetByHash(const KeyType &Hash)
 }
 
 template < class DataType, class KeyType >
-bool tcHashListMap<DataType,KeyType>::AddWithHash(DataType Data, const KeyType &Hash)
+bool tcHashListMap<DataType,KeyType>::AddWithHash(DataType Data, const KeyType &Hash) // todo: when string, empty Hash causes crash
 {
 	if(ContainsHash(Hash)) { if(Log(0))LogStream() << "Trying to add " << Hash << " twice" << endl; return false; }
 

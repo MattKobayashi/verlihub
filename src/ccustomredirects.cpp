@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2003-2005 Daniel Muller, dan at verliba dot cz
-	Copyright (C) 2006-2022 Verlihub Team, info at verlihub dot net
+	Copyright (C) 2006-2024 Verlihub Team, info at verlihub dot net
 
 	Verlihub is free software; You can redistribute it
 	and modify it under the terms of the GNU General
@@ -88,6 +88,7 @@ namespace nVerliHub {
 				return eBadNick;
 
 			case eCR_NOREDIR:
+			case eCR_FORCEMOVE: // we already sent redirect
 				return -1;
 
 			default:
@@ -130,7 +131,7 @@ namespace nVerliHub {
 			redir = (*it);
 
 			if (redir && redir->mEnable && (!redir->mFlag || (redir->mFlag & rmap))) {
-				if ((redir->mStart == redir->mStop) || ((int (lt->tm_hour) >= redir->mStart) && (int (lt->tm_hour) <= redir->mStop))) { // redirect hours
+				if ((redir->mStart == redir->mStop) || ((int(lt->tm_hour) >= redir->mStart) && (int(lt->tm_hour) <= redir->mStop))) { // redirect hours
 					if (redir->mCountry.empty() || cc.empty() || (toUpper(redir->mCountry).find(cc) != redir->mCountry.npos)) { // country match
 						if ((redir->mSecure == 2) || ((redir->mSecure == 1) == issec)) { // secure connection
 							if ((redir->mShare == 0) || (shar >= (unsigned __int64)((unsigned long)redir->mShare * 1024ul * 1024ul * 1024ul))) { // minimal share in gb
@@ -236,7 +237,7 @@ namespace nVerliHub {
 		string help("https://github.com/verlihub/verlihub/wiki/redirects/\r\n\r\n");
 
 		help += " Available redirect flags:\r\n\r\n";
-		help += " 0\t\t\t- For any other reason\r\n";
+		help += " 0\t\t\t- For any reason\r\n";
 		help += " 1\t\t\t- Ban and kick\r\n";
 		help += " 2\t\t\t- Hub is full\r\n";
 		help += " 4\t\t\t- Too low or too high share\r\n";
@@ -327,7 +328,20 @@ namespace nVerliHub {
 
 	bool cRedirectConsole::IsConnAllowed(cConnDC *conn, int cmd)
 	{
-		return (conn && conn->mpUser && (conn->mpUser->mClass >= eUC_ADMIN));
+		if (!conn || !conn->mpUser)
+			return false;
+
+		switch (cmd) {
+			case eLC_ADD:
+			case eLC_MOD:
+			case eLC_DEL:
+			case eLC_HELP:
+				return (conn->mpUser->mClass >= mOwner->mServer->mC.min_class_redir);
+			case eLC_LST:
+				return (conn->mpUser->mClass >= mOwner->mServer->mC.min_class_lstredir);
+			default:
+				return false;
+		}
 	}
 
 	}; // namespace nTables
